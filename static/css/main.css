@@ -1,7 +1,7 @@
 /* main.css — layout, theme variables, and global resets */
 
 :root {
-  /* Surfaces */
+  /* Surfaces (defaults = dark) */
   --bg-dark: #1e1e2e;
   --bg-panel: #2a2a3d;
   --bg-input: #1a1a27;
@@ -28,6 +28,8 @@
   --warn: #ffb45c;
   --success: #5cffb0;
   --info: #5cc8ff;
+
+  color-scheme: dark;
 
   /* Strength colors */
   --strength-weak: var(--danger);
@@ -61,44 +63,111 @@
   --dur-slow: 320ms;
 }
 
+
+
 * { box-sizing: border-box; }
 
 /* Make the [hidden] attribute win over author display rules (e.g. .modal). */
 [hidden] { display: none !important; }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  background: var(--bg-dark);
-  color: var(--fg-primary);
-  font-family: var(--font-sans);
-  font-size: 16px;
-  line-height: 1.5;
-  min-height: 100%;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+html,
+body {
+
+    margin:0;
+    padding:0;
+
+    background:var(--bg-dark);
+
+    color:var(--fg-primary);
+
+    font-family:var(--font-sans);
+
+}
+body{
+
+  background:
+      radial-gradient(
+          ellipse at top,
+          rgba(124,92,255,.12),
+          transparent 55%
+      ),
+      radial-gradient(
+          ellipse at bottom right,
+          rgba(92,200,255,.08),
+          transparent 55%
+      ),
+      var(--bg-dark);
+
+  background-attachment:fixed;
+
+  transition:
+      background .35s ease,
+      color .35s ease;
+
 }
 
-body {
+
+/* Light theme overrides — must live on `body.light` (the class the JS
+   actually toggles) and must redefine every variable the components read. */
+body.light {
+  /* Surfaces */
+  --bg-dark: #f4f4f8;
+  --bg-panel: #ffffff;
+  --bg-input: #ffffff;
+  --bg-elevated: #ececf3;
+  --bg-hover: #e2e2ee;
+
+  /* Borders & shadows */
+  --border-soft: #d9d9e3;
+  --border-strong: #c4c4d3;
+  --shadow-elev: 0 10px 30px -10px rgba(20, 20, 40, 0.18);
+  --shadow-glow: 0 0 0 1px rgba(124, 92, 255, 0.35);
+
+  /* Text */
+  --fg-primary: #14141f;
+  --fg-secondary: #4a4a63;
+  --fg-muted: #7e7e96;
+  --fg-inverse: #e4e4f1;
+
+  /* Accent (slightly deeper for contrast on light) */
+  --accent: #6a48f5;
+  --accent-hover: #5a38e5;
+  --accent-soft: rgba(106, 72, 245, 0.14);
+
+  color-scheme: light;
+}
+
+body.light{
+
   background:
-    radial-gradient(ellipse at top, rgba(124, 92, 255, 0.12) 0%, transparent 55%),
-    radial-gradient(ellipse at bottom right, rgba(92, 200, 255, 0.08) 0%, transparent 55%),
-    var(--bg-dark);
-  background-attachment: fixed;
+      radial-gradient(
+          ellipse at top,
+          rgba(124,92,255,.05),
+          transparent 55%
+      ),
+      radial-gradient(
+          ellipse at bottom right,
+          rgba(92,200,255,.04),
+          transparent 55%
+      ),
+      var(--bg-dark);
+
 }
 
 /* Subtle scanline / grid backdrop */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 32px 32px;
-  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent 80%);
+body.light::before{
+
+background-image:
+linear-gradient(
+rgba(0,0,0,.03) 1px,
+transparent 1px
+),
+linear-gradient(
+90deg,
+rgba(0,0,0,.03) 1px,
+transparent 1px
+);
+
 }
 
 h1, h2, h3 { margin: 0; font-weight: 700; letter-spacing: -0.01em; }
@@ -157,8 +226,20 @@ kbd {
   gap: var(--space-5);
   padding: var(--space-5) var(--space-6);
   border-bottom: 1px solid var(--border-soft);
-  background: linear-gradient(180deg, rgba(26, 26, 39, 0.95), rgba(30, 30, 46, 0.6));
+  background: linear-gradient(180deg, var(--bg-panel), var(--bg-dark));
   backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-elev);
+}
+
+/* Light-mode header elevation: softer surface, a hair more depth, a subtle
+   accent hairline under the bottom border, and a brighter brand glow. */
+body.light .app-header {
+  background: linear-gradient(180deg, #ffffff, var(--bg-dark));
+  border-bottom-color: var(--accent-soft);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.8) inset,
+    0 8px 24px -16px rgba(20, 20, 40, 0.18),
+    0 1px 0 0 var(--accent-soft);
 }
 
 .brand {
@@ -170,9 +251,18 @@ kbd {
   font-size: 2.4rem;
   filter: drop-shadow(0 0 12px rgba(124, 92, 255, 0.5));
 }
+body.light .brand-mark {
+  filter: drop-shadow(0 0 14px rgba(106, 72, 245, 0.35));
+}
 .brand-text h1 {
   font-size: 1.5rem;
   background: linear-gradient(120deg, var(--fg-primary), var(--accent-hover));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+body.light .brand-text h1 {
+  background: linear-gradient(120deg, #1a1a2e, var(--accent));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -184,10 +274,12 @@ kbd {
 }
 
 .header-meta {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
+
+  display:flex;
+  align-items:center;
+  gap:14px;
 }
+
 .api-status {
   display: inline-flex;
   align-items: center;
@@ -198,6 +290,11 @@ kbd {
   background: var(--bg-panel);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-pill);
+}
+
+body.light .api-status {
+  border-color: var(--border-strong);
+  box-shadow: 0 2px 8px -2px rgba(20, 20, 40, 0.12);
 }
 .api-dot {
   width: 0.55rem;
@@ -233,6 +330,11 @@ kbd {
   font-family: var(--font-mono);
 }
 
+body.light .version-badge {
+  border-color: var(--border-strong);
+  background: var(--bg-panel);
+}
+
 /* =========================== MAIN LAYOUT =========================== */
 .app-main {
   position: relative;
@@ -250,14 +352,22 @@ kbd {
 /* The first card spans the full width as a "primary" action area. */
 .app-main > section:first-of-type { grid-column: 1 / -1; }
 
-@media (max-width: 1023px) {
-  .app-main {
-    grid-template-columns: 1fr;
-    padding: var(--space-5) var(--space-4);
-  }
-  .app-main > section:first-of-type { grid-column: 1; }
-  .app-header { flex-direction: column; align-items: flex-start; }
-  .header-meta { width: 100%; justify-content: space-between; }
+@media(max-width:768px){
+
+.app-header{
+
+flex-direction:column;
+align-items:flex-start;
+
+}
+
+.header-meta{
+
+width:100%;
+justify-content:flex-end;
+
+}
+
 }
 
 @media (max-width: 600px) {
@@ -305,4 +415,51 @@ kbd {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+.theme-toggle{
+
+    width:42px;
+    height:42px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:50%;
+
+    border:1px solid var(--border-soft);
+
+    background:var(--bg-panel);
+
+    color:var(--fg-primary);
+
+    cursor:pointer;
+
+    transition:all .25s ease;
+
+}
+
+.theme-toggle:hover{
+
+    background:var(--bg-hover);
+
+    transform:translateY(-2px);
+
+}
+
+/* Light-mode elevation for the theme toggle. The base variables
+   (--bg-panel, --border-soft, --bg-hover) flip to white / very pale gray
+   in light mode, so the button outline nearly disappears against the white
+   header. Strengthen the border, add a soft shadow, and use the elevated
+   surface for hover so the interaction is clearly visible. */
+body.light .theme-toggle {
+    border-color: var(--border-strong);
+    box-shadow: 0 2px 8px -2px rgba(20, 20, 40, 0.18);
+}
+
+body.light .theme-toggle:hover {
+    background: var(--bg-elevated);
+    border-color: var(--accent);
+    box-shadow: 0 4px 12px -2px rgba(106, 72, 245, 0.35);
 }

@@ -22,6 +22,7 @@ import { checkBreach, abortBreach } from "./breach.js";
 /* -------------------------- DOM helpers -------------------------- */
 const $ = (id) => document.getElementById(id);
 const els = {
+  themeToggle: $("theme-toggle"),
   form: $("generator-form"),
   lengthSlider: $("length-slider"),
   lengthInput: $("length-input"),
@@ -648,6 +649,60 @@ function handleExport() {
   toast("Exported history as JSON", "success");
 }
 
+/* -------------------------- Theme -------------------------- */
+
+function initTheme() {
+
+    const savedTheme =
+        localStorage.getItem("theme") ||
+        (window.matchMedia("(prefers-color-scheme: light)").matches
+            ? "light"
+            : "dark");
+
+    document.body.classList.toggle(
+        "light",
+        savedTheme === "light"
+    );
+
+    updateThemeIcon(savedTheme);
+  
+
+    els.themeToggle.addEventListener("click", () => {
+
+        const light =
+            document.body.classList.toggle("light");
+
+        const theme = light ? "light" : "dark";
+
+        localStorage.setItem("theme", theme);
+
+        updateThemeIcon(theme);
+
+    });
+
+}
+
+function updateThemeIcon(theme) {
+
+    const icon = document.querySelector(".theme-icon");
+
+    if (!icon) return;
+
+    icon.textContent =
+        theme === "light"
+            ? "☀️"
+            : "🌙";
+
+}
+
+
+
+
+
+
+
+
+
 /* -------------------------- API status -------------------------- */
 async function checkApiStatus() {
   els.apiStatus.className = "api-status api-status--checking";
@@ -738,6 +793,7 @@ function wire() {
 
 export function init() {
   wire();
+  initTheme();
   renderResults();
   renderHistory();
   renderStrength(null);

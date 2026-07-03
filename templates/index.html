@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="color-scheme" content="dark" />
+  <meta name="color-scheme" content="dark light" />
   <meta name="description" content="A modern, cryptographically secure password generator with entropy and crack-time analysis." />
   <title>{{ app_title }}</title>
   <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}" />
@@ -22,13 +22,30 @@
         <p class="brand-sub">Cryptographically secure password generation, locally in your browser.</p>
       </div>
     </div>
-    <div class="header-meta">
-      <span id="api-status" class="api-status api-status--unknown" role="status" aria-live="polite">
-        <span class="api-dot" aria-hidden="true"></span>
-        <span class="api-label">Checking API…</span>
-      </span>
-      <span class="version-badge">v{{ app_version }}</span>
-    </div>
+        <div class="header-meta">
+
+          <!-- Theme Toggle -->
+           <button id="theme-toggle" class="theme-toggle">
+
+    <span class="theme-icon">🌙</span>
+
+</button>
+
+        <!-- API Status -->
+        <span id="api-status"
+              class="api-status api-status--unknown"
+              role="status"
+              aria-live="polite">
+
+            <span class="api-dot"></span>
+
+            <span class="api-label">
+                Checking API…
+            </span>
+
+        </span>
+
+      </div>
   </header>
 
   <main id="main" class="app-main">
@@ -269,6 +286,8 @@
     </div>
   </div>
 
+
+  
   <!-- =========================== SCRIPTS =========================== -->
   <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>

@@ -600,3 +600,103 @@ fieldset.field { border: 0; padding: 0; margin: 0; }
 .modal-title { font-size: 1.1rem; margin-bottom: var(--space-2); }
 .modal-body { color: var(--fg-secondary); font-size: 0.9rem; margin-bottom: var(--space-4); }
 .modal-actions { display: flex; justify-content: flex-end; gap: var(--space-2); }
+
+/* =========================== LIGHT-MODE POLISH ===========================
+   The base palette variables handle surfaces, text, and accents. These
+   overrides fix elements that were tuned for the dark theme and end up
+   too low-contrast in light mode. */
+
+/* Slider track: in dark mode the track is #1a1a27 (very dark) on a darker
+   panel — visible. In light mode --bg-input becomes white on a white card
+   and the track disappears. Give it a visible track + lighter thumb halo. */
+body.light .slider {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+}
+body.light .slider::-webkit-slider-thumb,
+body.light .slider::-moz-range-thumb {
+  box-shadow: 0 0 12px rgba(106, 72, 245, 0.45);
+}
+
+/* Checkbox square: --bg-dark becomes #f4f4f8 in light mode — invisible on
+   a white card. Pin the unchecked fill to the elevated surface and the
+   checked fill to a stronger color so the box reads in both states. */
+body.light .checkbox input[type="checkbox"] {
+  background: #ffffff;
+  border-color: var(--accent);
+}
+body.light .checkbox input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+body.light .checkbox input[type="checkbox"]:checked::after {
+  background: #ffffff;
+}
+
+/* Danger button: the 0.12 alpha pink is barely visible on white. */
+body.light .btn--danger {
+  background: rgba(255, 92, 122, 0.18);
+  border-color: rgba(255, 92, 122, 0.6);
+  color: #c43255;
+}
+body.light .btn--danger:hover {
+  background: rgba(255, 92, 122, 0.28);
+  color: #a8274a;
+}
+
+/* Form error banner */
+body.light .form-error {
+  background: rgba(255, 92, 122, 0.18);
+  border-color: rgba(255, 92, 122, 0.6);
+  color: #c43255;
+}
+
+/* Strength pills / breach badges: dark-mode colors are too pale on white.
+   Deepen the foreground and use a stronger alpha on the background. */
+body.light .strength-pill--weak { background: rgba(255, 92, 122, 0.22); color: #c43255; }
+body.light .strength-pill--medium { background: rgba(255, 140, 0, 0.22); color: #b85a00; }
+body.light .strength-pill--strong { background: rgba(0, 175, 90, 0.22); color: #007a3f; }
+body.light .strength-pill--very-strong { background: rgba(0, 130, 200, 0.22); color: #005a99; }
+
+body.light .breach-badge--breached { background: rgba(255, 92, 122, 0.22); color: #c43255; border-color: rgba(255, 92, 122, 0.65); }
+body.light .breach-badge--clean { background: rgba(0, 175, 90, 0.22); color: #007a3f; border-color: rgba(0, 175, 90, 0.65); }
+body.light .breach-badge--error { background: rgba(255, 140, 0, 0.22); color: #b85a00; border-color: rgba(255, 140, 0, 0.65); }
+body.light .breach-badge--pending { background: rgba(0, 130, 200, 0.22); color: #005a99; border-color: rgba(0, 130, 200, 0.65); }
+
+/* Auditor feedback rows: warn / suggestion / positive text was too pale
+   against the light elevated surface. */
+body.light .audit-feedback .audit-warn { color: #b85a00; }
+body.light .audit-feedback .audit-suggestion { color: #005a99; }
+body.light .audit-feedback .audit-positive { color: #007a3f; }
+body.light .audit-feedback li {
+  background: var(--bg-elevated);
+  color: var(--fg-secondary);
+  border-left-color: var(--border-strong);
+}
+
+/* Ghost button (Copy / Download / etc.): in light mode the transparent
+   background + pale border can blend with the card. */
+body.light .btn--ghost {
+  border-color: var(--border-strong);
+  background: var(--bg-panel);
+}
+body.light .btn--ghost:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+}
+
+/* Audit toggle button (👁) — pin a visible surface in light mode. */
+body.light .btn--ghost.btn--small {
+  background: var(--bg-panel);
+}
+
+/* Default .btn (history action buttons) — give a visible resting surface
+   so disabled buttons also read.
+   IMPORTANT: do NOT include .btn--primary here. Same-specificity selectors
+   resolve by source order, and this block sits AFTER the .btn--primary
+   rule, so an un-narrowed `body.light .btn` would clobber the purple
+   gradient of the Generate button. */
+body.light .btn:not(.btn--primary) {
+  background: var(--bg-elevated);
+  border-color: var(--border-strong);
+}
