@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="description" content="A modern, cryptographically secure password generator with entropy and crack-time analysis." />
+  <title>{{ app_title }}</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <!-- =========================== HEADER =========================== -->
+  <header class="app-header" role="banner">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">🔐</span>
+      <div class="brand-text">
+        <h1>{{ app_title }}</h1>
+        <p class="brand-sub">Cryptographically secure password generation, locally in your browser.</p>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span id="api-status" class="api-status api-status--unknown" role="status" aria-live="polite">
+        <span class="api-dot" aria-hidden="true"></span>
+        <span class="api-label">Checking API…</span>
+      </span>
+      <span class="version-badge">v{{ app_version }}</span>
+    </div>
+  </header>
+
+  <main id="main" class="app-main">
+    <!-- =========================== GENERATOR =========================== -->
+    <section class="card" aria-labelledby="generator-title">
+      <header class="card-header">
+        <h2 id="generator-title">Generator</h2>
+        <p class="card-sub">Pick your parameters. Generation runs in your browser via the Web Crypto API.</p>
+      </header>
+
+      <form id="generator-form" class="generator-form" novalidate>
+        <!-- Length -->
+        <div class="field">
+          <label for="length-slider" class="field-label">
+            Password length
+            <span id="length-readout" class="field-readout">16</span>
+          </label>
+          <div class="slider-row">
+            <input
+              id="length-slider"
+              class="slider"
+              type="range"
+              min="4"
+              max="128"
+              step="1"
+              value="16"
+              aria-describedby="length-help"
+            />
+            <input
+              id="length-input"
+              class="input input--narrow"
+              type="number"
+              min="4"
+              max="128"
+              step="1"
+              value="16"
+              inputmode="numeric"
+            />
+          </div>
+          <p id="length-help" class="field-help">
+            Between 4 and 128. <strong>Live entropy:</strong> <span id="entropy-readout">— bits</span>
+          </p>
+        </div>
+
+        <!-- Count -->
+        <div class="field">
+          <label for="count-input" class="field-label">Number of passwords</label>
+          <input
+            id="count-input"
+            class="input input--narrow"
+            type="number"
+            min="1"
+            max="50"
+            step="1"
+            value="1"
+            inputmode="numeric"
+          />
+          <p class="field-help">Generate up to 50 passwords at once (1–50).</p>
+        </div>
+
+        <!-- Categories -->
+        <fieldset class="field">
+          <legend class="field-label">Character categories</legend>
+          <div class="checkbox-grid">
+            <label class="checkbox">
+              <input type="checkbox" id="cat-uppercase" data-category="uppercase" checked />
+              <span class="checkbox-label">Uppercase (A–Z)</span>
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" id="cat-lowercase" data-category="lowercase" checked />
+              <span class="checkbox-label">Lowercase (a–z)</span>
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" id="cat-numbers" data-category="numbers" checked />
+              <span class="checkbox-label">Numbers (0–9)</span>
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" id="cat-special" data-category="special" />
+              <span class="checkbox-label">Special (!@#$…)</span>
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" id="avoid-ambiguous" />
+              <span class="checkbox-label">Avoid ambiguous (0/O, 1/l/I)</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- Actions -->
+        <div class="actions">
+          <button id="generate-btn" type="submit" class="btn btn--primary">
+            <span class="btn-icon" aria-hidden="true">⚙</span>
+            <span class="btn-label">Generate</span>
+          </button>
+          <button id="copy-all-btn" type="button" class="btn btn--ghost" disabled>
+            <span class="btn-icon" aria-hidden="true">📋</span>
+            <span class="btn-label">Copy all</span>
+          </button>
+          <button id="download-btn" type="button" class="btn btn--ghost" disabled>
+            <span class="btn-icon" aria-hidden="true">⬇</span>
+            <span class="btn-label">Download .txt</span>
+          </button>
+          <button id="clear-btn" type="reset" class="btn btn--ghost">
+            <span class="btn-icon" aria-hidden="true">✖</span>
+            <span class="btn-label">Clear</span>
+          </button>
+        </div>
+
+        <p id="form-error" class="form-error" role="alert" aria-live="assertive" hidden></p>
+      </form>
+    </section>
+
+    <!-- =========================== RESULTS =========================== -->
+    <section class="card" aria-labelledby="results-title">
+      <header class="card-header">
+        <h2 id="results-title">Generated passwords</h2>
+        <p class="card-sub">Click any password to copy it. Use the row buttons to regenerate or save.</p>
+      </header>
+      <ol id="results-list" class="results-list" aria-live="polite">
+        <li class="results-empty">No passwords generated yet.</li>
+      </ol>
+    </section>
+
+    <!-- =========================== STRENGTH =========================== -->
+    <section class="card" aria-labelledby="strength-title">
+      <header class="card-header">
+        <h2 id="strength-title">Strength analysis</h2>
+        <p class="card-sub">Analysis of the first generated password (or whatever you type below).</p>
+      </header>
+
+      <div class="strength-grid">
+        <div class="strength-tile">
+          <div class="strength-tile-label">Strength</div>
+          <div id="strength-label" class="strength-tile-value strength-pill strength-pill--weak">—</div>
+        </div>
+        <div class="strength-tile">
+          <div class="strength-tile-label">Entropy</div>
+          <div class="strength-tile-value">
+            <span id="entropy-value">—</span><span class="unit">bits</span>
+          </div>
+        </div>
+        <div class="strength-tile">
+          <div class="strength-tile-label">Time to crack</div>
+          <div class="strength-tile-value">
+            <span id="crack-time">—</span>
+          </div>
+          <div class="strength-tile-sub">@ 10 billion guesses / sec</div>
+        </div>
+        <div class="strength-tile">
+          <div class="strength-tile-label">NIST score</div>
+          <div class="strength-bar" aria-hidden="true">
+            <div id="strength-bar-fill" class="strength-bar-fill" style="width:0%"></div>
+          </div>
+          <div id="nist-score" class="strength-tile-sub">— / 8</div>
+        </div>
+      </div>
+
+      <div class="auditor">
+        <label for="audit-input" class="field-label">Audit your own password</label>
+        <div class="auditor-row">
+          <input
+            id="audit-input"
+            class="input"
+            type="text"
+            placeholder="Type a password to audit…"
+            autocomplete="off"
+            aria-controls="audit-feedback"
+            aria-describedby="audit-feedback"
+          />
+          <button id="audit-toggle" type="button" class="btn btn--ghost" aria-pressed="false" title="Show / hide password" aria-label="Show / hide password">
+            <span aria-hidden="true">👁</span>
+          </button>
+        </div>
+        <ul id="audit-feedback" class="audit-feedback" aria-live="polite">
+          <li class="audit-empty">Type a password above to see detailed feedback.</li>
+        </ul>
+        <button id="breach-check-btn" type="button" class="btn btn--ghost btn--small" disabled>
+          <span aria-hidden="true">🔒</span>
+          <span>Check SHA-1 prefix (offline stub)</span>
+        </button>
+        <p id="breach-result" class="breach-result" hidden></p>
+      </div>
+    </section>
+
+    <!-- =========================== HISTORY =========================== -->
+    <section class="card" aria-labelledby="history-title">
+      <header class="card-header">
+        <h2 id="history-title">History</h2>
+        <p class="card-sub">Stored locally in your browser (<code>localStorage</code>). Never sent to a server.</p>
+      </header>
+      <div class="history-actions">
+        <button id="export-btn" type="button" class="btn btn--ghost btn--small">
+          <span aria-hidden="true">📤</span><span>Export JSON</span>
+        </button>
+        <button id="import-btn" type="button" class="btn btn--ghost btn--small">
+          <span aria-hidden="true">📥</span><span>Import JSON</span>
+        </button>
+        <input id="import-input" type="file" accept="application/json" hidden />
+        <button id="clear-history-btn" type="button" class="btn btn--danger btn--small">
+          <span aria-hidden="true">🗑</span><span>Clear history</span>
+        </button>
+      </div>
+      <ol id="history-list" class="history-list" aria-live="polite">
+        <li class="results-empty">No history yet. Save passwords from the results panel to start tracking them.</li>
+      </ol>
+    </section>
+
+    <!-- =========================== TIPS =========================== -->
+    <section class="tips" aria-labelledby="tips-title">
+      <h2 id="tips-title">Password safety tips</h2>
+      <ul class="tips-list">
+        <li>✔ Never reuse passwords across sites.</li>
+        <li>✔ Use a unique password for every account.</li>
+        <li>✔ Minimum 12 characters recommended.</li>
+        <li>✔ Never share passwords over email, chat, or SMS.</li>
+        <li>✔ Use a reputable password manager (e.g. Bitwarden, 1Password).</li>
+        <li>✔ Enable two-factor authentication wherever possible.</li>
+        <li>✔ Watch for breaches via HaveIBeenPwned and rotate exposed credentials.</li>
+      </ul>
+      <p class="kbd-hint">
+        Shortcuts: <kbd>G</kbd> generate · <kbd>C</kbd> copy first · <kbd>?</kbd> show shortcuts
+      </p>
+    </section>
+  </main>
+
+  <!-- =========================== TOASTS =========================== -->
+  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- =========================== MODAL =========================== -->
+  <div id="modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel" role="document">
+      <h3 id="modal-title" class="modal-title">Title</h3>
+      <p id="modal-body" class="modal-body">Body</p>
+      <div class="modal-actions">
+        <button id="modal-cancel" type="button" class="btn btn--ghost">Cancel</button>
+        <button id="modal-confirm" type="button" class="btn btn--primary">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================== SCRIPTS =========================== -->
+  <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

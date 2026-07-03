@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.env
+
+# Flask
+instance/
+*.db
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Build artefacts
+tempCodeRunnerFile.py
+
+# Dev-only verification script (one-off, not part of the shipped app)
+_verify_core.py
