@@ -7,6 +7,11 @@
   border-radius: var(--radius-lg);
   padding: var(--space-5);
   box-shadow: var(--shadow-elev);
+  /* Allow cards inside the same grid row to match height when one of them
+     grows (e.g. Results expanding with generated passwords). The flex
+     internal layouts then distribute the extra space naturally. */
+  display: flex;
+  flex-direction: column;
 }
 .card-header { margin-bottom: var(--space-4); }
 .card-header h2 {
@@ -21,8 +26,24 @@
   font-size: 0.85rem;
 }
 
+/* Header layout that hosts action buttons on the right of the title row
+   (used by the History card). The text block stays on the left, the action
+   group sits on the right, vertically centered with the title. */
+.card-header--with-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.card-header--with-actions .card-header-text { min-width: 0; flex: 1 1 auto; }
+.card-header--with-actions .history-actions { margin-bottom: 0; }
+
 /* =========================== FORM =========================== */
-.generator-form { display: flex; flex-direction: column; gap: var(--space-5); }
+/* Tighter vertical rhythm inside the Generator card: drop the inter-field
+   gap from var(--space-5) (1.5rem) to var(--space-4) (1rem) so the form
+   feels more compact without losing the breathing room between sections. */
+.generator-form { display: flex; flex-direction: column; gap: var(--space-4); }
 
 .field { display: flex; flex-direction: column; gap: var(--space-2); }
 .field-label {
@@ -55,10 +76,16 @@
   appearance: none;
   flex: 1;
   height: 6px;
-  background: var(--bg-input);
+  background: linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.14));
   border-radius: var(--radius-pill);
   outline: none;
   cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.slider::-webkit-slider-runnable-track {
+  height: 6px;
+  background: transparent;
+  border-radius: var(--radius-pill);
 }
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -67,17 +94,23 @@
   background: var(--accent);
   border-radius: 50%;
   border: 3px solid var(--bg-panel);
-  box-shadow: 0 0 12px rgba(124, 92, 255, 0.6);
+  box-shadow: 0 0 18px rgba(141, 125, 255, 0.3);
   cursor: grab;
-  transition: transform var(--dur-fast) var(--ease);
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+  margin-top: -7px;
 }
-.slider::-webkit-slider-thumb:hover { transform: scale(1.1); }
+.slider::-webkit-slider-thumb:hover { transform: scale(1.1); box-shadow: 0 0 22px rgba(141, 125, 255, 0.45); }
+.slider::-moz-range-track {
+  height: 6px;
+  background: transparent;
+  border-radius: var(--radius-pill);
+}
 .slider::-moz-range-thumb {
   width: 20px; height: 20px;
   background: var(--accent);
   border-radius: 50%;
   border: 3px solid var(--bg-panel);
-  box-shadow: 0 0 12px rgba(124, 92, 255, 0.6);
+  box-shadow: 0 0 18px rgba(141, 125, 255, 0.3);
   cursor: grab;
 }
 
@@ -152,8 +185,11 @@ fieldset.field { border: 0; padding: 0; margin: 0; }
 /* =========================== BUTTONS =========================== */
 .actions {
   display: flex;
+  /* Keep all four action buttons in a single row — the icons + short labels
+     fit the card width at the design breakpoint. flex-wrap stays wrap as a
+     safety net for very narrow viewports. */
   flex-wrap: wrap;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 .btn {
   display: inline-flex;
@@ -252,6 +288,41 @@ fieldset.field { border: 0; padding: 0; margin: 0; }
   font-size: 0.9rem;
 }
 
+/* Adaptive empty-state for the Generated Passwords card. Sits inside
+   <ol id="results-list"> so JS that replaces the list (renderResults) keeps
+   working — the placeholder is replaced by real <li> result-rows as soon
+   as a password is generated. The card collapses to a compact ~210px when
+   empty and grows naturally as items appear. The placeholder content is
+   offset upward from center (justify-content: flex-start + a ~40px top
+   margin) so the icon and text don't look vertically centered. */
+.results-placeholder {
+  list-style: none;
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  gap: var(--space-2);
+  padding: calc(var(--space-5) - 2.5rem) var(--space-5) var(--space-5);
+  color: var(--fg-secondary);
+}
+.results-placeholder-icon {
+  font-size: 2.5rem;
+  filter: drop-shadow(0 0 12px rgba(124, 92, 255, 0.45));
+  margin-bottom: var(--space-2);
+}
+.results-placeholder-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--fg-primary);
+}
+.results-placeholder-sub {
+  font-size: 0.9rem;
+  color: var(--fg-muted);
+  max-width: 32ch;
+}
+
 .result-row {
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -322,13 +393,17 @@ fieldset.field { border: 0; padding: 0; margin: 0; }
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: var(--space-3);
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-4);
 }
 .strength-tile {
   background: var(--bg-input);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-md);
-  padding: var(--space-3) var(--space-4);
+  /* Slimmer vertical padding (~12–14% shorter than var(--space-3) = 0.75rem
+     on each side) keeps the value prominent without making the label
+     crowd. Horizontal padding stays the same so content alignment with
+     adjacent text is preserved. */
+  padding: 0.5rem var(--space-4);
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
@@ -340,7 +415,7 @@ fieldset.field { border: 0; padding: 0; margin: 0; }
   color: var(--fg-muted);
 }
 .strength-tile-value {
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--fg-primary);
   display: flex;
@@ -605,6 +680,32 @@ fieldset.field { border: 0; padding: 0; margin: 0; }
    The base palette variables handle surfaces, text, and accents. These
    overrides fix elements that were tuned for the dark theme and end up
    too low-contrast in light mode. */
+
+/* =========================== RESPONSIVE TWEAKS =========================== */
+
+/* On narrow screens, let the History header stack the title block above the
+   action buttons (the row is too cramped to fit both side-by-side). The
+   default card-header--with-actions is a flex row with wrap, but this
+   forces a clean two-row layout below 600px. */
+@media (max-width: 600px) {
+  .card-header--with-actions { flex-direction: column; align-items: stretch; }
+  .card-header--with-actions .history-actions { justify-content: flex-end; }
+}
+
+.password-toggle-icon {
+  display: inline-block;
+  width: 1.1rem;
+  height: 1.1rem;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.password-toggle-icon.icon--eye {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M1 12S5 5 12 5s11 7 11 7-4 7-11 7S1 12 1 12z' fill='none' stroke='currentColor' stroke-width='2'/%3E%3Ccircle cx='12' cy='12' r='3' fill='none' stroke='currentColor' stroke-width='2'/%3E%3C/svg%3E");
+}
+.password-toggle-icon.icon--eye-slash {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M1 12S5 5 12 5s11 7 11 7-4 7-11 7S1 12 1 12z' fill='none' stroke='currentColor' stroke-width='2'/%3E%3Cpath d='M7 7l10 10' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'/%3E%3Ccircle cx='12' cy='12' r='3' fill='none' stroke='currentColor' stroke-width='2'/%3E%3C/svg%3E");
+}
 
 /* Slider track: in dark mode the track is #1a1a27 (very dark) on a darker
    panel — visible. In light mode --bg-input becomes white on a white card

@@ -16,7 +16,7 @@ The UI runs in the browser; all generation and auditing happens client-side. The
 - **Strength analysis** — 4-tier label (Weak / Medium / Strong / Very Strong) and a NIST SP 800-63B-inspired 0–8 score with a visual bar.
 - **Entropy & crack-time** — Shannon-style entropy (`H = L · log₂(pool)`) and a human-readable time-to-crack estimate at 10 billion guesses/sec.
 - **Password auditor** — paste your own password to get length, category, repetition, sequence, keyboard-row, and common-leet warnings, plus a SHA-1 prefix computed locally (the actual k-anonymity lookup against `api.pwnedpasswords.com` is wired as a stub).
-- **Local history** — passwords you copy or save are stored in `localStorage` (key `spg.history.v1`, capped at 200 entries). Export to JSON, import from JSON, or clear.
+- **Local history** — every generated password is stored in `localStorage` (key `spg.history.v1`, capped at 200 entries). Export to JSON, import from JSON, or clear.
 - **Clipboard safety** — copies are auto-cleared from the clipboard after 30 s; results also auto-wipe from the DOM after 30 s when the tab is hidden.
 - **Keyboard shortcuts** — `G` generate, `C` copy first, `?` show hint.
 - **Hardened HTTP** — strict CSP (self-hosted only), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Permissions-Policy` lockdown, 64 KB request cap.

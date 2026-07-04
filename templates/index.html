@@ -50,7 +50,7 @@
 
   <main id="main" class="app-main">
     <!-- =========================== GENERATOR =========================== -->
-    <section class="card" aria-labelledby="generator-title">
+    <section class="card card--generator" aria-labelledby="generator-title">
       <header class="card-header">
         <h2 id="generator-title">Generator</h2>
         <p class="card-sub">Pick your parameters. Generation runs in your browser via the Web Crypto API.</p>
@@ -158,18 +158,22 @@
     </section>
 
     <!-- =========================== RESULTS =========================== -->
-    <section class="card" aria-labelledby="results-title">
+    <section class="card card--results" aria-labelledby="results-title">
       <header class="card-header">
         <h2 id="results-title">Generated passwords</h2>
         <p class="card-sub">Click any password to copy it. Use the row buttons to regenerate or save.</p>
       </header>
       <ol id="results-list" class="results-list" aria-live="polite">
-        <li class="results-empty">No passwords generated yet.</li>
+        <li class="results-placeholder" aria-hidden="true">
+          <div class="results-placeholder-icon" aria-hidden="true">🔐</div>
+          <div class="results-placeholder-title">Generate Passwords</div>
+          <div class="results-placeholder-sub">Your generated passwords will appear here.</div>
+        </li>
       </ol>
     </section>
 
     <!-- =========================== STRENGTH =========================== -->
-    <section class="card" aria-labelledby="strength-title">
+    <section class="card card--strength" aria-labelledby="strength-title">
       <header class="card-header">
         <h2 id="strength-title">Strength analysis</h2>
         <p class="card-sub">Analysis of the first generated password (or whatever you type below).</p>
@@ -215,7 +219,7 @@
             aria-describedby="audit-feedback"
           />
           <button id="audit-toggle" type="button" class="btn btn--ghost" aria-pressed="false" title="Show / hide password" aria-label="Show / hide password">
-            <span aria-hidden="true">👁</span>
+            <span class="password-toggle-icon icon--eye" aria-hidden="true"></span>
           </button>
         </div>
         <ul id="audit-feedback" class="audit-feedback" aria-live="polite">
@@ -230,23 +234,25 @@
     </section>
 
     <!-- =========================== HISTORY =========================== -->
-    <section class="card" aria-labelledby="history-title">
-      <header class="card-header">
-        <h2 id="history-title">History</h2>
-        <p class="card-sub">Stored locally in your browser (<code>localStorage</code>). Never sent to a server.</p>
+    <section class="card card--history history-card" aria-labelledby="history-title">
+      <header class="card-header card-header--with-actions">
+        <div class="card-header-text">
+          <h2 id="history-title">History</h2>
+          <p class="card-sub">Stored locally in your browser (<code>localStorage</code>). Never sent to a server.</p>
+        </div>
+        <div class="history-actions">
+          <button id="export-btn" type="button" class="btn btn--ghost btn--small">
+            <span aria-hidden="true">📤</span><span>Export JSON</span>
+          </button>
+          <button id="import-btn" type="button" class="btn btn--ghost btn--small">
+            <span aria-hidden="true">📥</span><span>Import JSON</span>
+          </button>
+          <input id="import-input" type="file" accept="application/json" hidden />
+          <button id="clear-history-btn" type="button" class="btn btn--danger btn--small">
+            <span aria-hidden="true">🗑</span><span>Clear history</span>
+          </button>
+        </div>
       </header>
-      <div class="history-actions">
-        <button id="export-btn" type="button" class="btn btn--ghost btn--small">
-          <span aria-hidden="true">📤</span><span>Export JSON</span>
-        </button>
-        <button id="import-btn" type="button" class="btn btn--ghost btn--small">
-          <span aria-hidden="true">📥</span><span>Import JSON</span>
-        </button>
-        <input id="import-input" type="file" accept="application/json" hidden />
-        <button id="clear-history-btn" type="button" class="btn btn--danger btn--small">
-          <span aria-hidden="true">🗑</span><span>Clear history</span>
-        </button>
-      </div>
       <ol id="history-list" class="history-list" aria-live="polite">
         <li class="results-empty">No history yet. Save passwords from the results panel to start tracking them.</li>
       </ol>
@@ -254,19 +260,32 @@
 
     <!-- =========================== TIPS =========================== -->
     <section class="tips" aria-labelledby="tips-title">
-      <h2 id="tips-title">Password safety tips</h2>
-      <ul class="tips-list">
-        <li>✔ Never reuse passwords across sites.</li>
-        <li>✔ Use a unique password for every account.</li>
-        <li>✔ Minimum 12 characters recommended.</li>
-        <li>✔ Never share passwords over email, chat, or SMS.</li>
-        <li>✔ Use a reputable password manager (e.g. Bitwarden, 1Password).</li>
-        <li>✔ Enable two-factor authentication wherever possible.</li>
-        <li>✔ Watch for breaches via HaveIBeenPwned and rotate exposed credentials.</li>
-      </ul>
-      <p class="kbd-hint">
-        Shortcuts: <kbd>G</kbd> generate · <kbd>C</kbd> copy first · <kbd>?</kbd> show shortcuts
-      </p>
+      <button
+        id="tips-toggle"
+        class="tips-accordion"
+        type="button"
+        aria-expanded="false"
+        aria-controls="tips-body"
+      >
+        <span id="tips-title" class="tips-accordion-title">Password Safety Tips</span>
+        <span class="tips-accordion-chevron" aria-hidden="true">▶</span>
+      </button>
+      <div id="tips-body" class="tips-accordion-body" hidden>
+        <div class="tips-accordion-inner">
+          <ul class="tips-list">
+            <li>✔ Never reuse passwords across sites.</li>
+            <li>✔ Use a unique password for every account.</li>
+            <li>✔ Minimum 12 characters recommended.</li>
+            <li>✔ Never share passwords over email, chat, or SMS.</li>
+            <li>✔ Use a reputable password manager (e.g. Bitwarden, 1Password).</li>
+            <li>✔ Enable two-factor authentication wherever possible.</li>
+            <li>✔ Watch for breaches via HaveIBeenPwned and rotate exposed credentials.</li>
+          </ul>
+          <p class="kbd-hint">
+            Shortcuts: <kbd>G</kbd> generate · <kbd>C</kbd> copy first · <kbd>?</kbd> show shortcuts
+          </p>
+        </div>
+      </div>
     </section>
   </main>
 

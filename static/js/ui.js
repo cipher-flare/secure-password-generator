@@ -59,6 +59,8 @@ const els = {
   modalConfirm: $("modal-confirm"),
   modalCancel: $("modal-cancel"),
   apiStatus: $("api-status"),
+  tipsToggle: $("tips-toggle"),
+  tipsBody: $("tips-body"),
 };
 
 const state = {
@@ -216,6 +218,14 @@ function handleGenerate(ev) {
       password: pwd,
       stats: passwordStats(pwd, form.categories),
     }));
+    // Persist immediately so history reflects what was generated, even if
+    // the user never copies or clicks the lock icon. addEntry() de-dupes
+    // by password, so this stays idempotent against the copy / save paths.
+    let anyAdded = false;
+    for (const r of state.results) {
+      if (autoSaveToHistory(r)) anyAdded = true;
+    }
+    if (anyAdded) renderHistory();
     renderResults();
     renderStrength(state.results[0]?.stats);
     els.copyAllBtn.disabled = state.results.length === 0;
@@ -230,8 +240,11 @@ function renderResults() {
   els.resultsList.innerHTML = "";
   if (state.results.length === 0) {
     const li = document.createElement("li");
-    li.className = "results-empty";
-    li.textContent = "No passwords generated yet.";
+    li.className = "results-placeholder";
+    li.innerHTML =
+      '<div class="results-placeholder-icon" aria-hidden="true">🔐</div>' +
+      '<div class="results-placeholder-title">Generate Passwords</div>' +
+      '<div class="results-placeholder-sub">Your generated passwords will appear here.</div>';
     els.resultsList.appendChild(li);
     return;
   }
@@ -544,7 +557,11 @@ function handleAuditToggle() {
   const isHidden = els.auditInput.type === "password";
   els.auditInput.type = isHidden ? "text" : "password";
   els.auditToggle.setAttribute("aria-pressed", isHidden ? "true" : "false");
-  els.auditToggle.textContent = isHidden ? "🙈" : "👁";
+  const icon = els.auditToggle.querySelector(".password-toggle-icon");
+  if (icon) {
+    icon.classList.toggle("icon--eye", isHidden);
+    icon.classList.toggle("icon--eye-slash", !isHidden);
+  }
 }
 
 /* -------------------------- History -------------------------- */
@@ -647,6 +664,50 @@ function handleExport() {
   // user is currently seeing in the History list.
   exportJSON(state.history);
   toast("Exported history as JSON", "success");
+}
+
+/* -------------------------- Tips accordion -------------------------- */
+function setTipsOpen(open) {
+  if (!els.tipsToggle || !els.tipsBody) return;
+  els.tipsToggle.setAttribute("aria-expanded", open ? "true" : "false");
+  if (open) {
+    // First open: drop [hidden] so the element participates in the grid
+    // animation, then on the next frame add .is-open so the browser
+    // animates the row-track transition instead of snapping straight to 1fr.
+    if (els.tipsBody.hasAttribute("hidden")) {
+      els.tipsBody.removeAttribute("hidden");
+      // Force a reflow so the browser registers the starting (0fr) state
+      // before we add the .is-open class — otherwise the transition is
+      // skipped on the first open.
+      void els.tipsBody.offsetHeight;
+    }
+    els.tipsBody.classList.add("is-open");
+  } else {
+    els.tipsBody.classList.remove("is-open");
+    // Wait for the transition to finish before re-applying [hidden] so the
+    // collapse is smooth and screen readers don't re-announce the body.
+    const onEnd = (e) => {
+      if (e.propertyName !== "grid-template-rows") return;
+      els.tipsBody.removeEventListener("transitionend", onEnd);
+      if (els.tipsToggle.getAttribute("aria-expanded") === "false") {
+        els.tipsBody.setAttribute("hidden", "");
+      }
+    };
+    els.tipsBody.addEventListener("transitionend", onEnd);
+  }
+}
+
+function handleTipsToggle() {
+  const isOpen = els.tipsToggle.getAttribute("aria-expanded") === "true";
+  setTipsOpen(!isOpen);
+}
+
+function handleTipsKeydown(e) {
+  if (e.key === "Escape" && els.tipsToggle.getAttribute("aria-expanded") === "true") {
+    e.preventDefault();
+    setTipsOpen(false);
+    els.tipsToggle.focus();
+  }
 }
 
 /* -------------------------- Theme -------------------------- */
@@ -759,6 +820,12 @@ function wire() {
   els.importBtn.addEventListener("click", () => els.importInput.click());
   els.importInput.addEventListener("change", handleImport);
   els.clearHistoryBtn.addEventListener("click", handleClearHistory);
+
+  // Tips accordion
+  if (els.tipsToggle) {
+    els.tipsToggle.addEventListener("click", handleTipsToggle);
+    els.tipsToggle.addEventListener("keydown", handleTipsKeydown);
+  }
 
   // Keyboard shortcuts
   document.addEventListener("keydown", (e) => {
